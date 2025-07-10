@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.5">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="RabbitMQ AMQP Publisher Test Plan" enabled="true">
+      <stringProp name="TestPlan.comments"/>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"/>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="RabbitMQ Load" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">10</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">5</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"/>
+        <stringProp name="ThreadGroup.delay"/>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">-1</stringProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate UUID and Message" enabled="true">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="script">import java.util.UUID;
+String uniqueID = UUID.randomUUID().toString();
+String message = &quot;{\&quot;id\&quot;:\&quot;&quot; + uniqueID + &quot;\&quot;, \&quot;payload\&quot;:\&quot;sample data\&quot;}&quot;;
+vars.put(&quot;messageID&quot;, uniqueID);
+vars.put(&quot;messageBody&quot;, message);
+</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <GenericSampler guiclass="AMQPPublisherGui" testclass="AMQPPublisher" testname="AMQP Publisher" enabled="true">
+          <stringProp name="AMQPPublisher.server">localhost</stringProp>
+          <stringProp name="AMQPPublisher.port">5672</stringProp>
+          <stringProp name="AMQPPublisher.vhost">/</stringProp>
+          <stringProp name="AMQPPublisher.username">guest</stringProp>
+          <stringProp name="AMQPPublisher.password">guest</stringProp>
+          <stringProp name="AMQPPublisher.exchange">test.exchange</stringProp>
+          <stringProp name="AMQPPublisher.routingKey">test.key</stringProp>
+          <stringProp name="AMQPPublisher.message">${messageBody}</stringProp>
+          <stringProp name="AMQPPublisher.queue"/>
+          <boolProp name="AMQPPublisher.useExchange">true</boolProp>
+        </GenericSampler>
+        <hashTree/>
+        <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Write UUID to File" enabled="true">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="script">def file = new File(&quot;/tmp/output_ids.txt&quot;);
+file &lt;&lt; vars.get(&quot;messageID&quot;) + &quot;\n&quot;;
+</stringProp>
+        </JSR223PostProcessor>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
